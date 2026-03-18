@@ -1,0 +1,8 @@
+node_modules
+.env
+*.log
+.DS_Store
+Thumbs.db
+**/build/
+wwwroot/environment.json
+wwwroot/InformedDesignExtension*.js
