@@ -73,7 +73,7 @@ That's it! As long as you are able to visualize the Product Release in the WebAp
 
 ## Troubleshooting
 
-Please contact us via https://forge.autodesk.com/en/support/get-help.
+Please contact us via https://aps.autodesk.com/get-help.
 
 ## License
 
