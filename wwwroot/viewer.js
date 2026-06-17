@@ -46,9 +46,19 @@ export function initViewer(container) {
   });
 }
 
-export async function loadModel(extension, { releaseId, accessId, accessType, productId }) {
+export async function loadModel(extension, { releaseId, accessId, accessType, productId, variantId, representation }) {
   try {
-    extension.setProductReleaseDataToFetch({ releaseId, accessId, accessType, productId });
+    // The extension resolves which variant/representation to load from the
+    // initialVariantId/initialRepresentation fields on the product release data.
+    // When initialVariantId is omitted it falls back to the default (latest) variant.
+    extension.setProductReleaseDataToFetch({
+      releaseId,
+      accessId,
+      accessType,
+      productId,
+      initialVariantId: variantId,
+      initialRepresentation: representation,
+    });
     extension.fetchProductRelease();
     extension.loadProductReleaseDefaultVariantSVF();
   } catch (error) {
