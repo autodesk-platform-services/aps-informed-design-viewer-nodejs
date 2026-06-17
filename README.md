@@ -46,7 +46,12 @@ APS_CALLBACK_URL=http://localhost:8080/api/auth/callback
   ```
   http://localhost:8080?releaseId=<RELEASE_ID>&accessId=<URL_ENCODED_ACCESS_ID>&accessType=<ACCESS_TYPE>
   ```
-  - You can find the required values by retrieving the data from the Informed Design API https://aps.autodesk.com/developer/documentation 
+  - You can find the required values by retrieving the data from the Informed Design API https://aps.autodesk.com/developer/documentation
+  - Optionally, you can specify a particular variant and representation to load by appending `variantId` and `representation` to the URL:
+    ```
+    http://localhost:8080?releaseId=<RELEASE_ID>&accessId=<URL_ENCODED_ACCESS_ID>&accessType=<ACCESS_TYPE>&variantId=<VARIANT_ID>&representation=<REPRESENTATION>
+    ```
+    When `variantId` is omitted the viewer loads the product release's default variant.
 
 > When using [Visual Studio Code](https://code.visualstudio.com), you can run & debug
 > the application by pressing `F5`.

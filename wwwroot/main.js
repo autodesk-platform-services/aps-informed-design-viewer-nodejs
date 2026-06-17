@@ -1,12 +1,19 @@
+// Client entry point. Lifecycle: read the product release from the URL query
+// params -> ensure the user is logged in (APS 3-legged OAuth) -> load that
+// release into the Autodesk Viewer. See initApp() at the bottom for the flow.
 import { initViewer, loadModel } from "./viewer.js";
 import {
   releaseIdQueryParam,
   accessIdQueryParam,
   accessTypeQueryParam,
+  variantIdQueryParam,
+  representationQueryParam,
 } from "./constants.js";
 import { ensureStringQueryParam, ensureValidUuidQueryParam } from "./utils.js";
 import { getReleaseById } from "./informed-design-api.js";
 
+// The OAuth login redirect drops our URL query params, so we stash the release
+// data in localStorage before redirecting and restore it once we come back.
 const PRODUCT_RELEASE_DATA_LOCAL_STORAGE_KEY = "productReleaseData";
 
 function parseProductReleaseFromUrl(location) {
@@ -16,6 +23,8 @@ function parseProductReleaseFromUrl(location) {
     releaseId: params.get(releaseIdQueryParam),
     accessId: params.get(accessIdQueryParam),
     accessType: params.get(accessTypeQueryParam),
+    variantId: params.get(variantIdQueryParam),
+    representation: params.get(representationQueryParam),
   };
 }
 
@@ -24,6 +33,12 @@ function buildUrlWithProductReleaseData(productReleaseData) {
   url.searchParams.set(releaseIdQueryParam, productReleaseData.releaseId);
   url.searchParams.set(accessIdQueryParam, productReleaseData.accessId);
   url.searchParams.set(accessTypeQueryParam, productReleaseData.accessType);
+  if (productReleaseData.variantId) {
+    url.searchParams.set(variantIdQueryParam, productReleaseData.variantId);
+  }
+  if (productReleaseData.representation) {
+    url.searchParams.set(representationQueryParam, productReleaseData.representation);
+  }
   return url.toString();
 }
 
@@ -85,6 +100,8 @@ async function loadProductReleaseIntoViewer({
   accessId,
   accessType,
   accessToken,
+  variantId,
+  representation,
 }) {
   try {
     if (!releaseId || !accessId || !accessType) {
@@ -108,6 +125,8 @@ async function loadProductReleaseIntoViewer({
       accessId: release.accessId,
       accessType: release.accessType,
       productId: release.productId,
+      variantId,
+      representation,
     });
   } catch (err) {
     alert("Could not initialize viewer. See the console for more details.");
@@ -117,6 +136,8 @@ async function loadProductReleaseIntoViewer({
 
 async function initApp() {
   try {
+    // /api/auth/profile is OK only when a session exists; otherwise we treat
+    // the user as logged out and send them through login (see the else branch).
     const resp = await fetch("/api/auth/profile");
     if (resp.ok) {
       setupCleanup();
@@ -142,6 +163,8 @@ async function initApp() {
           releaseId: productReleaseDataFromUrl.releaseId,
           accessId: productReleaseDataFromUrl.accessId,
           accessType: productReleaseDataFromUrl.accessType,
+          variantId: productReleaseDataFromUrl.variantId,
+          representation: productReleaseDataFromUrl.representation,
         });
       }
 
@@ -161,8 +184,12 @@ async function initApp() {
         accessId: productReleaseDataFromLocalStorage.accessId,
         accessType: productReleaseDataFromLocalStorage.accessType,
         accessToken: access_token,
+        variantId: productReleaseDataFromLocalStorage.variantId,
+        representation: productReleaseDataFromLocalStorage.representation,
       });
     } else {
+      // Not logged in: persist the URL's release data, then start OAuth.
+      // initApp() runs again on return, this time taking the logged-in branch.
       savePreLoginState();
 
       window.location.replace("/api/auth/login");
